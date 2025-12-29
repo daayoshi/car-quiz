@@ -7,32 +7,41 @@
     <title>トヨタ ミニバン判別クイズ</title>
     <style>
         body { font-family: 'Helvetica Neue', Arial, sans-serif; text-align: center; background-color: #f0f2f5; margin: 0; padding: 20px; touch-action: manipulation; }
+        
+        /* スタート画面を最前面に確実に表示 */
+        #start-screen { 
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
+            background: #ffffff; z-index: 9999; /* 重なり順を最大に */
+            display: flex; flex-direction: column; align-items: center; justify-content: center; 
+            padding: 20px; box-sizing: border-box; 
+        }
+        
         #quiz-container { background: white; width: 100%; max-width: 500px; margin: 0 auto; padding: 20px; border-radius: 15px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); box-sizing: border-box; }
         .stats { display: flex; justify-content: space-between; margin-bottom: 15px; font-weight: bold; color: #555; }
         .car-image-container { width: 100%; height: 250px; background-color: #e0e0e0; border-radius: 10px; overflow: hidden; margin-bottom: 20px; display: flex; align-items: center; justify-content: center; }
         .car-image-container img { width: 100%; height: 100%; object-fit: cover; }
         .btn-container { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-        button { padding: 15px 5px; font-size: 16px; cursor: pointer; border: none; border-radius: 8px; background: #2c3e50; color: white; font-weight: bold; -webkit-tap-highlight-color: transparent; }
-        button:active { background: #1a252f; }
-        button:disabled { background: #bdc3c7; }
-        #result-message { margin-top: 20px; font-size: 18px; font-weight: bold; min-height: 24px; }
-        #next-btn, #restart-btn, #start-btn { margin-top: 20px; width: 100%; background: #27ae60; color: white; border: none; padding: 15px; border-radius: 8px; font-size: 18px; cursor: pointer; }
         
-        /* スタート画面のスタイル */
-        #start-screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: white; z-index: 1000; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px; box-sizing: border-box; }
-        .sound-setting { margin: 20px 0; font-size: 18px; display: flex; align-items: center; gap: 10px; cursor: pointer; }
-        .sound-setting input { width: 25px; height: 25px; cursor: pointer; }
+        button { padding: 15px 5px; font-size: 16px; cursor: pointer; border: none; border-radius: 8px; background: #2c3e50; color: white; font-weight: bold; -webkit-tap-highlight-color: transparent; }
+        button:active { background: #1a252f; opacity: 0.8; }
+        
+        /* スタートボタン専用スタイル */
+        #start-btn { margin-top: 30px; width: 80%; max-width: 300px; background: #27ae60; padding: 20px; font-size: 20px; z-index: 10000; }
+        
+        .sound-setting { margin: 20px 0; font-size: 18px; display: flex; align-items: center; gap: 15px; cursor: pointer; padding: 10px; border: 1px solid #ddd; border-radius: 10px; }
+        .sound-setting input { width: 25px; height: 25px; }
+        #result-message { margin-top: 20px; font-size: 18px; font-weight: bold; min-height: 24px; }
     </style>
 </head>
 <body>
 
 <div id="start-screen">
-    <h1>ミニバン判別クイズ</h1>
-    <p>車種を当ててスコアを競おう！</p>
+    <h1 style="color:#2c3e50;">ミニバン判別クイズ</h1>
+    <p>全10問、何問正解できるかな？</p>
     
     <label class="sound-setting">
         <input type="checkbox" id="sound-toggle" checked>
-        <span>サウンドを有効にする</span>
+        <span>🔊 サウンドを有効にする</span>
     </label>
 
     <button id="start-btn" onclick="startGame()">クイズを始める</button>
@@ -43,21 +52,16 @@
         <div id="question-count">第 1 問 / 10</div>
         <div id="score-display">スコア: 0</div>
     </div>
-
-    <div id="image-area" class="car-image-container">
-        <p>読み込み中...</p>
-    </div>
-    
-    <div id="answer-buttons" class="btn-container">
+    <div id="image-area" class="car-image-container">画像読み込み中...</div>
+    <div class="btn-container" id="answer-buttons">
         <button onclick="handleAnswer('アルファード')">アルファード</button>
         <button onclick="handleAnswer('ヴェルファイア')">ヴェルファイア</button>
         <button onclick="handleAnswer('ノア')">ノア</button>
         <button onclick="handleAnswer('ヴォクシー')">ヴォクシー</button>
     </div>
-
     <div id="result-message"></div>
-    <button id="next-btn" style="display:none;" onclick="nextQuestion()">次の問題へ</button>
-    <button id="restart-btn" style="display:none;" onclick="restartGame()">もう一度挑戦する</button>
+    <button id="next-btn" style="display:none; background:#27ae60; margin-top:20px; width:100%;" onclick="nextQuestion()">次の問題へ</button>
+    <button id="restart-btn" style="display:none; background:#2980b9; margin-top:20px; width:100%;" onclick="restartGame()">もう一度挑戦する</button>
 </div>
 
 <audio id="sound-correct" src="sounds/correct.mp3" preload="auto"></audio>
@@ -72,39 +76,22 @@
     ];
     const imagesPerCar = 20;
     const quizCount = 10;
-
     let allImages = [];
     let currentQuizSet = [];
     let score = 0;
     let questionIndex = 0;
-    let isSoundEnabled = true; // サウンド設定を保持する変数
-
-    const soundCorrect = document.getElementById('sound-correct');
-    const soundWrong = document.getElementById('sound-wrong');
-
-    function createFullList() {
-        const list = [];
-        carTypes.forEach(car => {
-            for (let i = 1; i <= imagesPerCar; i++) {
-                list.push({
-                    name: car.name,
-                    img: car.folder + "/" + i + ".jpg"
-                });
-            }
-        });
-        return list;
-    }
+    let isSoundEnabled = true;
 
     function startGame() {
-        // チェックボックスの状態を取得
+        console.log("Start button clicked"); // デバッグ用
         isSoundEnabled = document.getElementById('sound-toggle').checked;
-
+        
+        const soundCorrect = document.getElementById('sound-correct');
         if (isSoundEnabled) {
-            // 音声が有効な場合のみ、ロック解除のための空再生を行う
             soundCorrect.play().then(() => {
                 soundCorrect.pause();
                 soundCorrect.currentTime = 0;
-            }).catch(e => console.log("Audio unlock failed"));
+            }).catch(e => console.log("Unlock failed", e));
         }
         
         document.getElementById('start-screen').style.display = 'none';
@@ -114,7 +101,46 @@
     function initGame() {
         score = 0;
         questionIndex = 0;
-        allImages = createFullList();
+        allImages = [];
+        carTypes.forEach(car => {
+            for (let i = 1; i <= imagesPerCar; i++) {
+                allImages.push({ name: car.name, img: car.folder + "/" + i + ".jpg" });
+            }
+        });
         currentQuizSet = allImages.sort(() => Math.random() - 0.5).slice(0, quizCount);
+        showQuestion();
+    }
+
+    function showQuestion() {
+        const currentData = currentQuizSet[questionIndex];
+        document.getElementById('question-count').innerText = `第 ${questionIndex + 1} 問 / ${quizCount}`;
+        document.getElementById('result-message').innerText = "";
+        document.getElementById('next-btn').style.display = "none";
+        document.querySelectorAll('#answer-buttons button').forEach(btn => btn.disabled = false);
+        document.getElementById('image-area').innerHTML = `<img src="${currentData.img}" onerror="this.parentNode.innerHTML='画像なし<br>${currentData.img}'">`;
+    }
+
+    function handleAnswer(userAnswer) {
+        const currentData = currentQuizSet[questionIndex];
+        document.querySelectorAll('#answer-buttons button').forEach(btn => btn.disabled = true);
+        const resultArea = document.getElementById('result-message');
         
-        document.getElementById
+        if (userAnswer === currentData.name) {
+            score++;
+            resultArea.innerText = "正解！ ⭕️";
+            resultArea.style.color = "#27ae60";
+            if (isSoundEnabled) playSound(document.getElementById('sound-correct'));
+        } else {
+            resultArea.innerText = "残念！ ❌ 正解は " + currentData.name;
+            resultArea.style.color = "#e74c3c";
+            if (isSoundEnabled) playSound(document.getElementById('sound-wrong'));
+        }
+        document.getElementById('score-display').innerText = `スコア: ${score}`;
+        document.getElementById('next-btn').style.display = "block";
+    }
+
+    function playSound(audio) {
+        audio.pause();
+        audio.currentTime = 0;
+        audio.play().catch(e => console.log("Play failed", e));
+    }
