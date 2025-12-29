@@ -5,84 +5,35 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>トヨタ ミニバン判別クイズ</title>
 <style>
-    /* 全体の設定 */
-    html, body {
-        height: 100%;
-        margin: 0;
-        padding: 0;
-        overflow-x: hidden; /* 横揺れを防止 */
-    }
-
-    body {
-        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-        background-color: #f0f2f5;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        padding: 10px; /* 画面端の余白 */
-        box-sizing: border-box;
-    }
-
+    /* 全体コンテナに下の余白を追加 */
     #quiz-container {
-        background: white;
+        /* ...これまでの設定... */
+        padding-bottom: 30px; /* 下側に余裕を持たせる */
+        margin-bottom: env(safe-area-inset-bottom); /* iPhoneのセーフエリアを考慮 */
+    }
+
+    /* 「次の問題へ」「もう一度」ボタンを押しやすく改善 */
+    #next-btn, #restart-btn {
         width: 100%;
-        max-width: 450px; /* PCで見ても大きすぎないサイズ */
-        padding: 15px;
-        border-radius: 15px;
-        box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-        box-sizing: border-box; /* パディングを含めた幅計算 */
+        padding: 20px; /* 高さを出して押しやすく */
+        margin-top: 25px; /* 回答ボタンとの距離を離す */
+        font-size: 20px; /* 文字を大きく */
+        border-radius: 12px;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1); /* 浮き上がらせてボタン認識しやすく */
+        -webkit-appearance: none;
     }
 
-    /* 画像エリアの調整 */
-    .car-image-container {
-        width: 100%;
-        height: 40vh; /* 画面の高さの40%に設定 */
-        max-height: 250px; /* 大きくなりすぎないように制限 */
-        background-color: #eee;
-        margin-bottom: 15px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        border-radius: 10px;
-        overflow: hidden;
-    }
-
-    .car-image-container img {
-        width: 100%;
-        height: 100%;
-        object-fit: contain; /* 画像全体が必ず見えるようにする */
-        background-color: #000; /* 余白を黒で埋める（ディーラーサイト風） */
-    }
-
-    /* ボタンエリアの調整 */
-    .btn-container {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 8px;
-    }
-
+    /* 回答ボタンも少し高さを調整 */
     .btn-container button {
-        padding: 15px 5px;
-        font-size: 14px; /* 少し小さくしてはみ出し防止 */
-        background: #2c3e50;
-        color: white;
-        border: none;
-        border-radius: 8px;
-        font-weight: bold;
+        padding: 18px 5px; /* 高さを少しアップ */
+        font-size: 16px;
     }
 
-    /* スタート画面もぴったりサイズに */
-    #start-screen {
-        position: fixed;
-        top: 0; left: 0; width: 100%; height: 100%;
-        background: white;
-        z-index: 99999;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        padding: 20px;
-        box-sizing: border-box;
+    /* 結果メッセージの余白 */
+    #result-message {
+        margin-top: 15px;
+        padding: 10px;
+        min-height: 40px; /* メッセージが出てもガタつかないように固定 */
     }
 </style>
 </head>
@@ -213,4 +164,5 @@
 </script>
 </body>
 </html>
+
 
