@@ -17,14 +17,24 @@
         button:disabled { background: #bdc3c7; }
         #result-message { margin-top: 20px; font-size: 18px; font-weight: bold; min-height: 24px; }
         #next-btn, #restart-btn, #start-btn { margin-top: 20px; width: 100%; background: #27ae60; color: white; border: none; padding: 15px; border-radius: 8px; font-size: 18px; cursor: pointer; }
+        
+        /* スタート画面のスタイル */
         #start-screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: white; z-index: 1000; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px; box-sizing: border-box; }
+        .sound-setting { margin: 20px 0; font-size: 18px; display: flex; align-items: center; gap: 10px; cursor: pointer; }
+        .sound-setting input { width: 25px; height: 25px; cursor: pointer; }
     </style>
 </head>
 <body>
 
 <div id="start-screen">
     <h1>ミニバン判別クイズ</h1>
-    <p>音量をオンにして挑戦してください</p>
+    <p>車種を当ててスコアを競おう！</p>
+    
+    <label class="sound-setting">
+        <input type="checkbox" id="sound-toggle" checked>
+        <span>サウンドを有効にする</span>
+    </label>
+
     <button id="start-btn" onclick="startGame()">クイズを始める</button>
 </div>
 
@@ -67,6 +77,7 @@
     let currentQuizSet = [];
     let score = 0;
     let questionIndex = 0;
+    let isSoundEnabled = true; // サウンド設定を保持する変数
 
     const soundCorrect = document.getElementById('sound-correct');
     const soundWrong = document.getElementById('sound-wrong');
@@ -85,11 +96,16 @@
     }
 
     function startGame() {
-        // 音声のロック解除
-        soundCorrect.play().then(() => {
-            soundCorrect.pause();
-            soundCorrect.currentTime = 0;
-        }).catch(e => console.log("Audio unlock failed"));
+        // チェックボックスの状態を取得
+        isSoundEnabled = document.getElementById('sound-toggle').checked;
+
+        if (isSoundEnabled) {
+            // 音声が有効な場合のみ、ロック解除のための空再生を行う
+            soundCorrect.play().then(() => {
+                soundCorrect.pause();
+                soundCorrect.currentTime = 0;
+            }).catch(e => console.log("Audio unlock failed"));
+        }
         
         document.getElementById('start-screen').style.display = 'none';
         initGame();
@@ -101,72 +117,4 @@
         allImages = createFullList();
         currentQuizSet = allImages.sort(() => Math.random() - 0.5).slice(0, quizCount);
         
-        document.getElementById('score-display').innerText = `スコア: 0`;
-        document.getElementById('answer-buttons').style.display = "grid";
-        document.getElementById('restart-btn').style.display = "none";
-        showQuestion();
-    }
-
-    function showQuestion() {
-        const currentData = currentQuizSet[questionIndex];
-        document.getElementById('question-count').innerText = `第 ${questionIndex + 1} 問 / ${quizCount}`;
-        document.getElementById('result-message').innerText = "";
-        document.getElementById('next-btn').style.display = "none";
-        
-        const buttons = document.querySelectorAll('#answer-buttons button');
-        buttons.forEach(btn => btn.disabled = false);
-
-        const imageArea = document.getElementById('image-area');
-        imageArea.innerHTML = `<img src="${currentData.img}" alt="クイズ" onerror="this.parentNode.innerHTML='画像なし<br>${currentData.img}'">`;
-    }
-
-    function handleAnswer(userAnswer) {
-        const currentData = currentQuizSet[questionIndex];
-        const buttons = document.querySelectorAll('#answer-buttons button');
-        buttons.forEach(btn => btn.disabled = true);
-
-        const resultArea = document.getElementById('result-message');
-        if (userAnswer === currentData.name) {
-            score++;
-            resultArea.innerText = "正解！ ⭕️";
-            resultArea.style.color = "#27ae60";
-            playSound(soundCorrect);
-        } else {
-            resultArea.innerText = "残念！ ❌ 正解は " + currentData.name;
-            resultArea.style.color = "#e74c3c";
-            playSound(soundWrong);
-        }
-        document.getElementById('score-display').innerText = `スコア: ${score}`;
-        document.getElementById('next-btn').style.display = "block";
-    }
-
-    function playSound(audio) {
-        audio.pause();
-        audio.currentTime = 0;
-        audio.play().catch(e => console.log("Play failed", e));
-    }
-
-    function nextQuestion() {
-        questionIndex++;
-        if (questionIndex < quizCount) {
-            showQuestion();
-        } else {
-            showFinalResult();
-        }
-    }
-
-    function showFinalResult() {
-        document.getElementById('image-area').innerHTML = "<h2>終了！</h2>";
-        document.getElementById('answer-buttons').style.display = "none";
-        document.getElementById('next-btn').style.display = "none";
-        document.getElementById('result-message').innerText = `${quizCount}問中 ${score}問 正解でした！`;
-        document.getElementById('restart-btn').style.display = "block";
-    }
-
-    function restartGame() {
-        initGame();
-    }
-</script>
-
-</body>
-</html>
+        document.getElementById
