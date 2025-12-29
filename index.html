@@ -21,6 +21,9 @@
 </head>
 <body>
 
+<audio id="sound-correct" src="sounds/correct.mp3" preload="auto"></audio>
+<audio id="sound-wrong" src="sounds/wrong.mp3" preload="auto"></audio>
+
 <div id="quiz-container">
     <div class="stats">
         <div id="question-count">第 1 問</div>
@@ -138,6 +141,40 @@
     }
 
     initGame();
+
+function checkAnswer(userAnswer) {
+    const currentData = currentQuizSet[questionIndex];
+    const buttons = document.querySelectorAll('#answer-buttons button');
+    buttons.forEach(btn => btn.disabled = true);
+
+    const resultArea = document.getElementById('result-message');
+    
+    // 音を鳴らすための要素を取得
+    const soundCorrect = document.getElementById('sound-correct');
+    const soundWrong = document.getElementById('sound-wrong');
+
+    if (userAnswer === currentData.name) {
+        score++;
+        resultArea.innerText = "正解！ ⭕️";
+        resultArea.style.color = "#27ae60";
+        
+        // 正解音を再生（再生位置を0に戻してから再生するのがコツ）
+        soundCorrect.currentTime = 0;
+        soundCorrect.play();
+    } else {
+        resultArea.innerText = "残念！ ❌ 正解は " + currentData.name;
+        resultArea.style.color = "#e74c3c";
+        
+        // 不正解音を再生
+        soundWrong.currentTime = 0;
+        soundWrong.play();
+    }
+
+    document.getElementById('score-display').innerText = `スコア: ${score}`;
+    document.getElementById('next-btn').style.display = "block";
+}
+
+    
 </script>
 
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -164,3 +201,4 @@
         font-size: 18px;
     }
 </style>
+
