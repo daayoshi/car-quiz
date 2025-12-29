@@ -139,3 +139,28 @@
 
     initGame();
 </script>
+
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
+<link rel="apple-touch-icon" href="alphard/1.jpg"> <style>
+    /* iPhone向けの微調整 */
+    body {
+        /* 画面の拡大（ピンチイン・アウト）を禁止してアプリ感を出す */
+        touch-action: manipulation;
+        padding: 10px;
+    }
+    #quiz-container {
+        width: 100%;
+        max-width: none; /* スマホでは横幅いっぱいに使う */
+        margin: 0;
+        box-sizing: border-box;
+    }
+    .car-image-container {
+        height: 200px; /* スマホの縦画面に合わせた高さ */
+    }
+    button {
+        /* スマホで押しやすいように高さを出す */
+        padding: 20px 10px;
+        font-size: 18px;
+    }
+</style>
