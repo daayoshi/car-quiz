@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>トヨタ ミニバン判別クイズ</title>
+    <style>
+        body { font-family: 'Helvetica Neue', Arial, sans-serif; text-align: center; background-color: #f0f2f5; margin: 0; padding: 20px; }
+        #quiz-container { background: white; width: 100%; max-width: 500px; margin: 0 auto; padding: 20px; border-radius: 15px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); }
+        .stats { display: flex; justify-content: space-between; margin-bottom: 15px; font-weight: bold; color: #555; }
+        .car-image-container { width: 100%; height: 280px; background-color: #e0e0e0; border-radius: 10px; overflow: hidden; margin-bottom: 20px; display: flex; align-items: center; justify-content: center; }
+        .car-image-container img { width: 100%; height: 100%; object-fit: cover; }
+        .btn-container { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        button { padding: 15px; font-size: 16px; cursor: pointer; border: none; border-radius: 8px; background: #2c3e50; color: white; font-weight: bold; }
+        button:hover { background: #34495e; }
+        button:disabled { background: #bdc3c7; }
+        #result-message { margin-top: 20px; font-size: 20px; font-weight: bold; min-height: 30px; }
+        #next-btn, #restart-btn { display:none; margin-top:20px; width:100%; background:#27ae60; color: white; border: none; padding: 15px; border-radius: 8px; font-size: 18px; cursor: pointer; }
+        #restart-btn { background: #2980b9; }
+    </style>
+</head>
+<body>
+
+<div id="quiz-container">
+    <div class="stats">
+        <div id="question-count">第 1 問</div>
+        <div id="score-display">スコア: 0</div>
+    </div>
+
+    <div id="image-area" class="car-image-container">
+        <p>読み込み中...</p>
+    </div>
+    
+    <div id="answer-buttons" class="btn-container">
+        <button onclick="checkAnswer('アルファード')">アルファード</button>
+        <button onclick="checkAnswer('ヴェルファイア')">ヴェルファイア</button>
+        <button onclick="checkAnswer('ノア')">ノア</button>
+        <button onclick="checkAnswer('ヴォクシー')">ヴォクシー</button>
+    </div>
+
+    <div id="result-message"></div>
+    <button id="next-btn" onclick="nextQuestion()">次の問題へ</button>
+    <button id="restart-btn" onclick="restartGame()">もう一度挑戦する</button>
+</div>
+
+<script>
+    const carTypes = [
+        { name: "アルファード", folder: "alphard" },
+        { name: "ヴェルファイア", folder: "vellfire" },
+        { name: "ノア", folder: "noah" },
+        { name: "ヴォクシー", folder: "voxy" }
+    ];
+    const imagesPerCar = 20; 
+    const quizCount = 10;    
+
+    let allImages = [];      
+    let currentQuizSet = []; 
+    let score = 0;
+    let questionIndex = 0;
+
+    // 【修正箇所】ファイル名の生成ロジックを直しました
+    function createFullList() {
+        const list = [];
+        carTypes.forEach(car => {
+            for (let i = 1; i <= imagesPerCar; i++) {
+                list.push({
+                    name: car.name,
+                    img: car.folder + "/" + i + ".jpg" // `${car.folder}/${i}.jpg` と同じ意味です
+                });
+            }
+        });
+        return list;
+    }
+
+    function initGame() {
+        score = 0;
+        questionIndex = 0;
+        allImages = createFullList();
+        currentQuizSet = allImages.sort(() => Math.random() - 0.5).slice(0, quizCount);
+        
+        document.getElementById('score-display').innerText = `スコア: 0`;
+        document.getElementById('answer-buttons').style.display = "grid";
+        document.getElementById('restart-btn').style.display = "none";
+        showQuestion();
+    }
+
+    function showQuestion() {
+        const currentData = currentQuizSet[questionIndex];
+        document.getElementById('question-count').innerText = `第 ${questionIndex + 1} 問 / ${quizCount}`;
+        document.getElementById('result-message').innerText = "";
+        document.getElementById('next-btn').style.display = "none";
+        
+        const buttons = document.querySelectorAll('#answer-buttons button');
+        buttons.forEach(btn => btn.disabled = false);
+
+        const imageArea = document.getElementById('image-area');
+        // 画像をセット。エラーが出た場合はパスを表示して確認しやすくします
+        imageArea.innerHTML = `<img src="${currentData.img}" alt="クイズ" onerror="this.parentNode.innerHTML='画像が見つかりません<br>パス: ${currentData.img}'">`;
+    }
+
+    function checkAnswer(userAnswer) {
+        const currentData = currentQuizSet[questionIndex];
+        const buttons = document.querySelectorAll('#answer-buttons button');
+        buttons.forEach(btn => btn.disabled = true);
+
+        const resultArea = document.getElementById('result-message');
+        if (userAnswer === currentData.name) {
+            score++;
+            resultArea.innerText = "正解！ ⭕️";
+            resultArea.style.color = "#27ae60";
+        } else {
+            resultArea.innerText = "残念！ ❌ 正解は " + currentData.name;
+            resultArea.style.color = "#e74c3c";
+        }
+        document.getElementById('score-display').innerText = `スコア: ${score}`;
+        document.getElementById('next-btn').style.display = "block";
+    }
+
+    function nextQuestion() {
+        questionIndex++;
+        if (questionIndex < quizCount) {
+            showQuestion();
+        } else {
+            showFinalResult();
+        }
+    }
+
+    function showFinalResult() {
+        document.getElementById('image-area').innerHTML = "<h2>終了！</h2>";
+        document.getElementById('answer-buttons').style.display = "none";
+        document.getElementById('next-btn').style.display = "none";
+        document.getElementById('result-message').innerText = `${quizCount}問中 ${score}問 正解でした！`;
+        document.getElementById('restart-btn').style.display = "block";
+    }
+
+    function restartGame() {
+        initGame();
+    }
+
+    initGame();
+</script>
