@@ -3,166 +3,128 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
     <title>トヨタ ミニバン判別クイズ</title>
-<style>
-    /* 全体コンテナに下の余白を追加 */
-    #quiz-container {
-        /* ...これまでの設定... */
-        padding-bottom: 30px; /* 下側に余裕を持たせる */
-        margin-bottom: env(safe-area-inset-bottom); /* iPhoneのセーフエリアを考慮 */
-    }
+    <style>
+        /* 全体のレイアウト調整 */
+        html, body {
+            height: 100%;
+            margin: 0;
+            padding: 0;
+            overflow: hidden; /* 画面の揺れを防止 */
+            background-color: #f0f2f5;
+        }
 
-    /* 「次の問題へ」「もう一度」ボタンを押しやすく改善 */
-    #next-btn, #restart-btn {
-        width: 100%;
-        padding: 20px; /* 高さを出して押しやすく */
-        margin-top: 25px; /* 回答ボタンとの距離を離す */
-        font-size: 20px; /* 文字を大きく */
-        border-radius: 12px;
-        box-shadow: 0 4px 6px rgba(0,0,0,0.1); /* 浮き上がらせてボタン認識しやすく */
-        -webkit-appearance: none;
-    }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: env(safe-area-inset-top) 15px env(safe-area-inset-bottom) 15px;
+            box-sizing: border-box;
+            touch-action: manipulation;
+        }
 
-    /* 回答ボタンも少し高さを調整 */
-    .btn-container button {
-        padding: 18px 5px; /* 高さを少しアップ */
-        font-size: 16px;
-    }
+        /* クイズの外枠 */
+        #quiz-container {
+            background: white;
+            width: 100%;
+            max-width: 450px;
+            padding: 20px;
+            border-radius: 20px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            box-sizing: border-box;
+            display: flex;
+            flex-direction: column;
+        }
 
-    /* 結果メッセージの余白 */
-    #result-message {
-        margin-top: 15px;
-        padding: 10px;
-        min-height: 40px; /* メッセージが出てもガタつかないように固定 */
-    }
-</style>
-</head>
-<body>
+        /* ステータス表示 */
+        .stats {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            font-weight: bold;
+            color: #555;
+            font-size: 14px;
+        }
 
-<div id="start-screen">
-    <h1>ミニバン判別クイズ</h1>
-    <label style="margin-bottom: 20px; display: block; font-size: 18px;">
-        <input type="checkbox" id="sound-toggle" checked style="width: 20px; height: 20px;"> サウンドあり
-    </label>
-    <button id="start-btn">クイズを始める</button>
-</div>
+        /* 画像エリア：画面の高さに合わせて自動調整 */
+        .car-image-container {
+            width: 100%;
+            height: 35vh; /* 画面の高さの35% */
+            min-height: 180px;
+            max-height: 250px;
+            background-color: #000;
+            border-radius: 12px;
+            overflow: hidden;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
 
-<div id="quiz-container">
-    <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
-        <span id="question-count">第 1 問 / 10</span>
-        <span id="score-display">スコア: 0</span>
-    </div>
-    <div id="image-area" class="car-image-container">準備中...</div>
-    <div class="btn-container" id="answer-buttons">
-        <button onclick="handleAnswer('アルファード')">アルファード</button>
-        <button onclick="handleAnswer('ヴェルファイア')">ヴェルファイア</button>
-        <button onclick="handleAnswer('ノア')">ノア</button>
-        <button onclick="handleAnswer('ヴォクシー')">ヴォクシー</button>
-    </div>
-    <div id="result-message"></div>
-    <button id="next-btn" style="display:none; background:#27ae60;" onclick="nextQuestion()">次の問題へ</button>
-    <button id="restart-btn" style="display:none; background:#2980b9;" onclick="restartGame()">もう一度挑戦する</button>
-</div>
+        .car-image-container img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain; /* 画像をはみ出させない */
+        }
 
-<audio id="sound-correct" src="sounds/correct.mp3" preload="auto"></audio>
-<audio id="sound-wrong" src="sounds/wrong.mp3" preload="auto"></audio>
+        /* 回答ボタン（2列） */
+        .btn-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
 
-<script>
-    // データの定義
-    const carTypes = [
-        { name: "アルファード", folder: "alphard" },
-        { name: "ヴェルファイア", folder: "vellfire" },
-        { name: "ノア", folder: "noah" },
-        { name: "ヴォクシー", folder: "voxy" }
-    ];
-    let allImages = [];
-    let currentQuizSet = [];
-    let score = 0;
-    let questionIndex = 0;
-    let isSoundEnabled = true;
+        button {
+            padding: 18px 5px;
+            font-size: 16px;
+            cursor: pointer;
+            border: none;
+            border-radius: 10px;
+            background: #2c3e50;
+            color: white;
+            font-weight: bold;
+            -webkit-tap-highlight-color: transparent;
+            transition: opacity 0.2s;
+        }
 
-    // ボタンのイベントリスナーを直接登録（確実性を高める）
-    document.getElementById('start-btn').addEventListener('click', function() {
-        console.log("Start button clicked via listener");
-        isSoundEnabled = document.getElementById('sound-toggle').checked;
-        
-        // 音声の解除
-        if (isSoundEnabled) {
-            const correct = document.getElementById('sound-correct');
-            correct.play().then(() => {
-                correct.pause();
-                correct.currentTime = 0;
-            }).catch(e => console.log("Unlock error"));
+        button:active { opacity: 0.7; }
+        button:disabled { background: #bdc3c7; }
+
+        /* 「次へ」「もう一度」ボタン：大きく、押しやすく */
+        #next-btn, #restart-btn {
+            margin-top: 15px;
+            width: 100%;
+            background: #27ae60;
+            padding: 20px;
+            font-size: 18px;
         }
         
-        document.getElementById('start-screen').style.display = 'none';
-        initGame();
-    });
+        #restart-btn { background: #2980b9; }
 
-    function initGame() {
-        score = 0;
-        questionIndex = 0;
-        allImages = [];
-        carTypes.forEach(car => {
-            for (let i = 1; i <= 20; i++) {
-                allImages.push({ name: car.name, img: car.folder + "/" + i + ".jpg" });
-            }
-        });
-        currentQuizSet = allImages.sort(() => Math.random() - 0.5).slice(0, 10);
-        showQuestion();
-    }
-
-    function showQuestion() {
-        const data = currentQuizSet[questionIndex];
-        document.getElementById('question-count').innerText = `第 ${questionIndex + 1} 問 / 10`;
-        document.getElementById('result-message').innerText = "";
-        document.getElementById('next-btn').style.display = "none";
-        document.querySelectorAll('#answer-buttons button').forEach(b => b.disabled = false);
-        document.getElementById('image-area').innerHTML = `<img src="${data.img}" onerror="this.parentNode.innerHTML='画像なし<br>${data.img}'">`;
-    }
-
-    function handleAnswer(ans) {
-        const data = currentQuizSet[questionIndex];
-        document.querySelectorAll('#answer-buttons button').forEach(b => b.disabled = true);
-        if (ans === data.name) {
-            score++;
-            document.getElementById('result-message').innerText = "正解！ ⭕️";
-            document.getElementById('result-message').style.color = "green";
-            if (isSoundEnabled) playSound('sound-correct');
-        } else {
-            document.getElementById('result-message').innerText = "不正解 ❌ 正解は " + data.name;
-            document.getElementById('result-message').style.color = "red";
-            if (isSoundEnabled) playSound('sound-wrong');
+        #result-message {
+            margin-top: 10px;
+            font-size: 18px;
+            font-weight: bold;
+            min-height: 24px;
+            color: #333;
         }
-        document.getElementById('score-display').innerText = `スコア: ${score}`;
-        document.getElementById('next-btn').style.display = "block";
-    }
 
-    function playSound(id) {
-        const a = document.getElementById(id);
-        a.pause(); a.currentTime = 0; a.play();
-    }
+        /* スタート画面 */
+        #start-screen {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: white; z-index: 10000;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            padding: 20px; box-sizing: border-box;
+        }
 
-    function nextQuestion() {
-        questionIndex++;
-        if (questionIndex < 10) showQuestion();
-        else showResult();
-    }
+        #start-btn { width: 80%; max-width: 300px; background: #27ae60; padding: 20px; font-size: 20px; }
 
-    function showResult() {
-        document.getElementById('image-area').innerHTML = "<h2>終了！</h2>";
-        document.getElementById('answer-buttons').style.display = "none";
-        document.getElementById('next-btn').style.display = "none";
-        document.getElementById('result-message').innerText = `10問中 ${score}問 正解！`;
-        document.getElementById('restart-btn').style.display = "block";
-    }
-
-    function restartGame() {
-        document.getElementById('answer-buttons').style.display = "grid";
-        initGame();
-    }
-</script>
-</body>
-</html>
-
-
+        .sound-setting {
+            margin: 25px 0;
+            padding: 15px;
+            border: 2px solid #eee;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
