@@ -4,30 +4,87 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>トヨタ ミニバン判別クイズ</title>
-    <style>
-        body { font-family: sans-serif; text-align: center; background-color: #f0f2f5; margin: 0; padding: 20px; }
-        
-        /* スタート画面を強制的に最前面へ */
-        #start-screen { 
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
-            background: white; z-index: 99999; /* 絶対に最前面 */
-            display: flex; flex-direction: column; align-items: center; justify-content: center; 
-        }
-        
-        #start-btn { 
-            padding: 20px 40px; font-size: 20px; background: #27ae60; color: white; 
-            border: none; border-radius: 10px; cursor: pointer; font-weight: bold;
-            -webkit-appearance: none; /* iPhoneのボタンデフォルトスタイルを解除 */
-        }
+<style>
+    /* 全体の設定 */
+    html, body {
+        height: 100%;
+        margin: 0;
+        padding: 0;
+        overflow-x: hidden; /* 横揺れを防止 */
+    }
 
-        #quiz-container { background: white; width: 100%; max-width: 500px; margin: 0 auto; padding: 20px; border-radius: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
-        .car-image-container { width: 100%; height: 250px; background-color: #eee; margin-bottom: 20px; display: flex; align-items: center; justify-content: center; overflow: hidden; }
-        .car-image-container img { width: 100%; height: 100%; object-fit: cover; }
-        .btn-container { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-        .btn-container button { padding: 15px; background: #2c3e50; color: white; border: none; border-radius: 8px; font-weight: bold; }
-        #result-message { margin-top: 20px; font-weight: bold; font-size: 1.2em; }
-        #next-btn, #restart-btn { width: 100%; padding: 15px; margin-top: 15px; color: white; border: none; border-radius: 8px; font-size: 18px; }
-    </style>
+    body {
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        background-color: #f0f2f5;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 10px; /* 画面端の余白 */
+        box-sizing: border-box;
+    }
+
+    #quiz-container {
+        background: white;
+        width: 100%;
+        max-width: 450px; /* PCで見ても大きすぎないサイズ */
+        padding: 15px;
+        border-radius: 15px;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        box-sizing: border-box; /* パディングを含めた幅計算 */
+    }
+
+    /* 画像エリアの調整 */
+    .car-image-container {
+        width: 100%;
+        height: 40vh; /* 画面の高さの40%に設定 */
+        max-height: 250px; /* 大きくなりすぎないように制限 */
+        background-color: #eee;
+        margin-bottom: 15px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 10px;
+        overflow: hidden;
+    }
+
+    .car-image-container img {
+        width: 100%;
+        height: 100%;
+        object-fit: contain; /* 画像全体が必ず見えるようにする */
+        background-color: #000; /* 余白を黒で埋める（ディーラーサイト風） */
+    }
+
+    /* ボタンエリアの調整 */
+    .btn-container {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 8px;
+    }
+
+    .btn-container button {
+        padding: 15px 5px;
+        font-size: 14px; /* 少し小さくしてはみ出し防止 */
+        background: #2c3e50;
+        color: white;
+        border: none;
+        border-radius: 8px;
+        font-weight: bold;
+    }
+
+    /* スタート画面もぴったりサイズに */
+    #start-screen {
+        position: fixed;
+        top: 0; left: 0; width: 100%; height: 100%;
+        background: white;
+        z-index: 99999;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+        box-sizing: border-box;
+    }
+</style>
 </head>
 <body>
 
@@ -156,3 +213,4 @@
 </script>
 </body>
 </html>
+
