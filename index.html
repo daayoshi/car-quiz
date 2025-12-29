@@ -128,3 +128,142 @@
             border-radius: 12px;
             display: flex;
             align-items: center;
+            gap: 12px;
+        }
+    </style>
+</head>
+<body>
+
+<div id="start-screen">
+    <h1 style="color:#2c3e50; margin-bottom:10px;">ミニバン判別クイズ</h1>
+    <p style="color:#666;">iPhone対応版</p>
+    
+    <label class="sound-setting">
+        <input type="checkbox" id="sound-toggle" checked style="width:24px; height:24px;">
+        <span style="font-size:18px; font-weight:bold;">🔊 サウンドあり</span>
+    </label>
+
+    <button id="start-btn">クイズを始める</button>
+</div>
+
+<div id="quiz-container">
+    <div class="stats">
+        <span id="question-count">第 1 問 / 10</span>
+        <span id="score-display">スコア: 0</span>
+    </div>
+
+    <div id="image-area" class="car-image-container">画像読み込み中...</div>
+    
+    <div class="btn-container" id="answer-buttons">
+        <button onclick="handleAnswer('アルファード')">アルファード</button>
+        <button onclick="handleAnswer('ヴェルファイア')">ヴェルファイア</button>
+        <button onclick="handleAnswer('ノア')">ノア</button>
+        <button onclick="handleAnswer('ヴォクシー')">ヴォクシー</button>
+    </div>
+
+    <div id="result-message"></div>
+    
+    <button id="next-btn" style="display:none;" onclick="nextQuestion()">次の問題へ進む</button>
+    <button id="restart-btn" style="display:none;" onclick="restartGame()">もう一度挑戦する</button>
+</div>
+
+<audio id="sound-correct" src="sounds/correct.mp3" preload="auto"></audio>
+<audio id="sound-wrong" src="sounds/wrong.mp3" preload="auto"></audio>
+
+<script>
+    const carTypes = [
+        { name: "アルファード", folder: "alphard" },
+        { name: "ヴェルファイア", folder: "vellfire" },
+        { name: "ノア", folder: "noah" },
+        { name: "ヴォクシー", folder: "voxy" }
+    ];
+    let allImages = [];
+    let currentQuizSet = [];
+    let score = 0;
+    let questionIndex = 0;
+    let isSoundEnabled = true;
+
+    // スタートボタンのイベント
+    document.getElementById('start-btn').addEventListener('click', function() {
+        isSoundEnabled = document.getElementById('sound-toggle').checked;
+        if (isSoundEnabled) {
+            const a = document.getElementById('sound-correct');
+            a.play().then(() => { a.pause(); a.currentTime = 0; });
+        }
+        document.getElementById('start-screen').style.display = 'none';
+        initGame();
+    });
+
+    function initGame() {
+        score = 0;
+        questionIndex = 0;
+        allImages = [];
+        carTypes.forEach(car => {
+            for (let i = 1; i <= 20; i++) {
+                allImages.push({ name: car.name, img: car.folder + "/" + i + ".jpg" });
+            }
+        });
+        currentQuizSet = allImages.sort(() => Math.random() - 0.5).slice(0, 10);
+        showQuestion();
+    }
+
+    function showQuestion() {
+        const data = currentQuizSet[questionIndex];
+        document.getElementById('question-count').innerText = `第 ${questionIndex + 1} 問 / 10`;
+        document.getElementById('result-message').innerText = "";
+        document.getElementById('next-btn').style.display = "none";
+        document.querySelectorAll('#answer-buttons button').forEach(b => b.disabled = false);
+        document.getElementById('image-area').innerHTML = `<img src="${data.img}" onerror="this.parentNode.innerHTML='画像なし<br>${data.img}'">`;
+    }
+
+    function handleAnswer(ans) {
+        const data = currentQuizSet[questionIndex];
+        document.querySelectorAll('#answer-buttons button').forEach(b => b.disabled = true);
+        const res = document.getElementById('result-message');
+        
+        if (ans === data.name) {
+            score++;
+            res.innerText = "正解！ ⭕️";
+            res.style.color = "#27ae60";
+            if (isSoundEnabled) playSound('sound-correct');
+        } else {
+            res.innerText = "残念！ ❌ 正解は " + data.name;
+            res.style.color = "#e74c3c";
+            if (isSoundEnabled) playSound('sound-wrong');
+        }
+        document.getElementById('score-display').innerText = `スコア: ${score}`;
+        document.getElementById('next-btn').style.display = "block";
+    }
+
+    function playSound(id) {
+        const a = document.getElementById(id);
+        a.pause(); a.currentTime = 0; a.play();
+    }
+
+    function nextQuestion() {
+        questionIndex++;
+        if (questionIndex < 10) showQuestion();
+        else showFinalResult();
+    }
+
+    function showFinalResult() {
+        let rank = "";
+        if (score === 10) rank = "👑伝説のマスター";
+        else if (score >= 7) rank = "🥇ミニバン博士";
+        else if (score >= 4) rank = "🥈ミニバン好き";
+        else rank = "🥉ミニバン見習い";
+
+        document.getElementById('image-area').innerHTML = `<div style="color:white;"><h2>終了！</h2><p style="font-size:20px;">${rank}</p></div>`;
+        document.getElementById('answer-buttons').style.display = "none";
+        document.getElementById('next-btn').style.display = "none";
+        document.getElementById('result-message').innerText = `10問中 ${score}問 正解でした！`;
+        document.getElementById('restart-btn').style.display = "block";
+    }
+
+    function restartGame() {
+        document.getElementById('answer-buttons').style.display = "grid";
+        initGame();
+    }
+</script>
+</body>
+</html>
